@@ -13,8 +13,16 @@ public class DB
 	{
 		//@formatter:off
 		storageManager = EmbeddedStorageConfiguration.Builder()
-			.setStorageDirectoryInUserHome("microstream-data/AdvancedTrainingMaster")
+			.setStorageDirectoryInUserHome("microstream-data/StorageAdvancedTraining")
+			
+			.setChannelDirectoryPrefix("ck_storage_channel")
+			.setDataFilePrefix("ck_datafile_")
+			.setTransactionFilePrefix("ck_translog_")
+			.setTypeDictionaryFileName("ck_type_dictionary")
+			
 			.createEmbeddedStorageFoundation()
 			.createEmbeddedStorageManager(root).start();
+		
+		
 	}
 }
