@@ -20,6 +20,8 @@ public class DB
 			.setTransactionFilePrefix("ck_translog_")
 			.setTypeDictionaryFileName("ck_type_dictionary")
 			
+//			.setChannelCount(4)
+			
 			.createEmbeddedStorageFoundation()
 			.createEmbeddedStorageManager(root).start();
 		
