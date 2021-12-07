@@ -1,5 +1,6 @@
 package one.microstream.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -47,5 +48,71 @@ public class BookController
 		});
 		
 		return HttpResponse.ok("Books successfully created!");
+	}
+	
+	@Get("/updatebookstartswithA")
+	public HttpResponse<?> updateBooksStartWithA()
+	{
+		DB.root.getBooks().stream().filter(b -> b.getName().startsWith("A")).forEach(b ->
+		{
+			// Reduces price of books starting with an A by 10%
+			b.setPrice(b.getPrice().multiply(new BigDecimal(0.9)));
+		});
+		
+		return HttpResponse.ok("Books successfully updated!");
+	}
+	
+	@Get("/updatebookandauthor")
+	public HttpResponse<?> updateBookAndAuthor()
+	{
+		Book book = DB.root.getBooks().get(0);
+		
+		book.setName("This is a book with a changed name");
+		book.getAuthor().setLastname("This is a book with a changed name");
+		
+		return HttpResponse.ok("Books successfully updated!");
+	}
+	
+	@Get("/updateNonStore")
+	public HttpResponse<?> updateBookNonStore()
+	{
+		Book book =
+			DB.root.getBooks().stream().filter(b -> b.getIsbn().equalsIgnoreCase("498123138-5")).findFirst().get();
+		String oldname = book.getName();
+		book.setName("Java, The Good Parts");
+		
+		return HttpResponse.ok("Name of book successfully changed from " + oldname + " to " + book.getName());
+	}
+	
+	@Get("/updateNonStoreDeep")
+	public HttpResponse<?> updateAuthorNonStore()
+	{
+		Book book =
+			DB.root.getBooks().stream().filter(b -> b.getIsbn().equalsIgnoreCase("498123138-5")).findFirst().get();
+		String oldname = book.getAuthor().getLastname();
+		book.getAuthor().setLastname("Travolta");
+		
+		return HttpResponse.ok(
+			"Name of author successfully changed from " + oldname + " to " + book.getAuthor().getLastname());
+	}
+	
+	@Get("/rollbackFlat")
+	public HttpResponse<?> rollbackBookFlat()
+	{
+		Book book =
+			DB.root.getBooks().stream().filter(b -> b.getIsbn().equalsIgnoreCase("498123138-5")).findFirst().get();
+		System.out.println(book.getName());
+		
+		return HttpResponse.ok("Book successfully rollbacked!");
+	}
+	
+	@Get("/rollbackDeep")
+	public HttpResponse<?> rollbackBookDeep()
+	{
+		Book book =
+			DB.root.getBooks().stream().filter(b -> b.getIsbn().equalsIgnoreCase("498123138-5")).findFirst().get();
+		System.out.println(book.getAuthor().getLastname());
+		
+		return HttpResponse.ok("Author successfully rollbacked!");
 	}
 }
