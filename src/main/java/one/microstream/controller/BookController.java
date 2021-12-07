@@ -1,6 +1,7 @@
 package one.microstream.controller;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
@@ -28,5 +29,23 @@ public class BookController
 	public List<Book> getBook()
 	{
 		return DB.root.getBooks();
+	}
+	
+	@Get("/createbooksloop")
+	public HttpResponse<?> createBooksLoop()
+	{
+		IntStream.rangeClosed(1, 10).forEach(i ->
+		{
+			List<Book> allCreatedBooks = MockupUtils.loadMockupData();
+			allCreatedBooks.forEach(b ->
+			{
+				DB.root.getBooks().add(b);
+				DB.storageManager.store(DB.root.getBooks());
+			});
+			
+			System.out.println("Durchlauf " + i);
+		});
+		
+		return HttpResponse.ok("Books successfully created!");
 	}
 }
