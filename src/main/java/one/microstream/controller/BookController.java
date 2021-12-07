@@ -7,8 +7,11 @@ import java.util.stream.IntStream;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import one.microstream.domain.Author;
 import one.microstream.domain.Book;
+import one.microstream.persistence.types.Storer;
 import one.microstream.storage.DB;
+import one.microstream.utils.BinaryPersistenceReloader;
 import one.microstream.utils.MockupUtils;
 
 
@@ -53,11 +56,16 @@ public class BookController
 	@Get("/updatebookstartswithA")
 	public HttpResponse<?> updateBooksStartWithA()
 	{
+		Storer es = DB.storageManager.createEagerStorer();
+		
 		DB.root.getBooks().stream().filter(b -> b.getName().startsWith("A")).forEach(b ->
 		{
 			// Reduces price of books starting with an A by 10%
 			b.setPrice(b.getPrice().multiply(new BigDecimal(0.9)));
+			es.store(b);
 		});
+		
+		es.commit();
 		
 		return HttpResponse.ok("Books successfully updated!");
 	}
@@ -65,10 +73,18 @@ public class BookController
 	@Get("/updatebookandauthor")
 	public HttpResponse<?> updateBookAndAuthor()
 	{
+		Storer ls = DB.storageManager.createLazyStorer();
+		
 		Book book = DB.root.getBooks().get(0);
 		
 		book.setName("This is a book with a changed name");
-		book.getAuthor().setLastname("This is a book with a changed name");
+		ls.store(book);
+		
+		Author author = book.getAuthor();
+		author.setLastname("This is a book with a changed name");
+		ls.store(author);
+		
+		ls.commit();
 		
 		return HttpResponse.ok("Books successfully updated!");
 	}
@@ -103,6 +119,12 @@ public class BookController
 			DB.root.getBooks().stream().filter(b -> b.getIsbn().equalsIgnoreCase("498123138-5")).findFirst().get();
 		System.out.println(book.getName());
 		
+		final BinaryPersistenceReloader reloader =
+			BinaryPersistenceReloader.New(DB.storageManager.persistenceManager());
+		
+		reloader.reloadFlat(book);
+		System.out.println(book.getName());
+		
 		return HttpResponse.ok("Book successfully rollbacked!");
 	}
 	
@@ -112,6 +134,18 @@ public class BookController
 		Book book =
 			DB.root.getBooks().stream().filter(b -> b.getIsbn().equalsIgnoreCase("498123138-5")).findFirst().get();
 		System.out.println(book.getAuthor().getLastname());
+		
+		final BinaryPersistenceReloader reloader =
+			BinaryPersistenceReloader.New(DB.storageManager.persistenceManager());
+		
+		try
+		{
+			reloader.reloadDeep(book);
+		}
+		catch(Exception e)
+		{
+			System.out.println(book.getAuthor().getLastname());
+		}
 		
 		return HttpResponse.ok("Author successfully rollbacked!");
 	}

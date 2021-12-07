@@ -5,6 +5,7 @@ import java.util.List;
 
 import one.microstream.domain.Book;
 
+
 public class DataRoot
 {
 	private final List<Book> books = new ArrayList<Book>();
@@ -12,5 +13,10 @@ public class DataRoot
 	public List<Book> getBooks()
 	{
 		return books;
+	}
+	
+	public void clear()
+	{
+		books.clear();
 	}
 }
